@@ -1,39 +1,77 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# Flutter PeerJS
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
+A pure Dart implementation of the PeerJS API for Flutter, built on top of
+`flutter_webrtc`. This package allows you to create P2P data connections in your
+Flutter applications using the familiar PeerJS logic.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
+**Note:** This package currently supports **DataConnection** only (no media
+calls).
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+## Installation
 
-## Features
+Add `flutter_peerjs` to your `pubspec.yaml`:
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+```yaml
+dependencies:
+  flutter_peerjs:
+    path: ./ # Or git/pub version
+```
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+### Initialization
 
 ```dart
-const like = 'sample';
+import 'package:flutter_peerjs/flutter_peerjs.dart';
+
+// Create a Peer
+final peer = Peer(
+  options: PeerOptions(
+    debug: 2, // 0: None, 1: Error, 2: Warnings, 3: All
+  ),
+);
+
+// Listen for the OPEN event
+peer.onOpen.listen((id) {
+  print('My Peer ID is: $id');
+});
 ```
 
-## Additional information
+### Connect to a Peer
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+```dart
+final connection = peer.connect('another-peer-id');
+
+connection.onOpen.listen((_) {
+  connection.send('Hello!');
+});
+```
+
+### Receive Connections
+
+```dart
+peer.onConnection.listen((connection) {
+  print('Incoming connection from ${connection.peerId}');
+  
+  connection.onData.listen((data) {
+    print('Received: $data');
+  });
+  
+  connection.onOpen.listen((_) {
+    connection.send('Hello back!');
+  });
+});
+```
+
+## Features
+
+- **PeerJS Compatible**: Uses standard PeerJS signaling server by default.
+- **Data Channels**: Send text or binary data.
+- **Event Driven**: fully Stream-based API.
+
+## Requirements
+
+- Flutter SDK
+- `flutter_webrtc` setup (permissions for Internet/Network)
+
+For a complete runnable example, check the `example/` folder.
