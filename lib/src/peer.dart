@@ -46,7 +46,7 @@ class Peer {
   final Map<String, RTCPeerConnection> _peerConnections = {};
 
   Peer({String? id, PeerOptions? options}) 
-      : this.options = options ?? PeerOptions() {
+      : options = options ?? PeerOptions() {
     _id = id;
     _initialize();
   }
@@ -103,7 +103,7 @@ class Peer {
   }
 
   void _handleMessage(dynamic message) {
-    var data;
+    dynamic data;
     try {
       data = jsonDecode(message);
     } catch (e) {
@@ -142,7 +142,10 @@ class Peer {
         // Handle token expiration if needed
         break;
       default:
-        if (options.debug > 0) print('Peer: Unhandled message type: $type');
+        if (options.debug > 0) {
+          // ignore: avoid_print
+          print('Peer: Unhandled message type: $type');
+        }
     }
   }
 
@@ -154,7 +157,7 @@ class Peer {
     }
     if (_disconnected) {
        // Prefer to warn or try reconnect? 
-       print('Peer is disconnected, attempting to clean reconnect...');
+       // print('Peer is disconnected, attempting to clean reconnect...');
     }
 
     final connectionOptions = options ?? ConnectionOptions();
@@ -194,7 +197,7 @@ class Peer {
   
   Future<void> _startConnection(String remotePeerId, DataConnection dataConnection, ConnectionOptions connectionOptions) async {
     try {
-      final pc = await createPeerConnection(options.rtcConfig.toMap(), {});
+      final pc = await createPeerConnection(options.rtcConfig, {});
       _peerConnections[remotePeerId] = pc; // Store PC
 
       // Setup ICE handling
@@ -205,7 +208,7 @@ class Peer {
           'payload': {
              'candidate': candidate.candidate,
              'sdpMid': candidate.sdpMid,
-             'sdpMLineIndex': candidate.sdpMlineIndex,
+             'sdpMLineIndex': candidate.sdpMLineIndex,
           }
         });
       };
@@ -282,12 +285,12 @@ class Peer {
     final sdp = payload['sdp'];
     final type = payload['type'];
     final label = payload['label'];
-    final reliable = payload['reliable'];
+    // final reliable = payload['reliable'];
     // final metadata = payload['metadata'];
     // final serialization = payload['serialization'];
 
     try {
-      final pc = await createPeerConnection(options.rtcConfig.toMap(), {});
+      final pc = await createPeerConnection(options.rtcConfig, {});
       _peerConnections[srcId] = pc;
 
       // Handle Data Channel from remote
@@ -310,7 +313,7 @@ class Peer {
           'payload': {
              'candidate': candidate.candidate,
              'sdpMid': candidate.sdpMid,
-             'sdpMLineIndex': candidate.sdpMlineIndex,
+             'sdpMLineIndex': candidate.sdpMLineIndex,
           }
         });
       };
@@ -329,7 +332,7 @@ class Peer {
       });
 
     } catch (e) {
-      print('Failed to handle offer: $e');
+      _emitError(PeerErrorType.webrtc, 'Failed to handle offer: $e');
     }
   }
 
@@ -339,7 +342,7 @@ class Peer {
       try {
         await pc.setRemoteDescription(RTCSessionDescription(payload['sdp'], payload['type']));
       } catch (e) {
-        print('Failed to set remote description (answer): $e');
+        _emitError(PeerErrorType.webrtc, 'Failed to set remote description (answer): $e');
       }
     }
   }
@@ -354,7 +357,7 @@ class Peer {
            payload['sdpMLineIndex']
          ));
        } catch (e) {
-         print('Failed to add candidate: $e');
+         _emitError(PeerErrorType.webrtc, 'Failed to add candidate: $e');
        }
      }
   }

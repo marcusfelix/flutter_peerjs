@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'enums.dart';
-import 'options.dart';
 import 'peer_error.dart';
 
 class DataConnection {

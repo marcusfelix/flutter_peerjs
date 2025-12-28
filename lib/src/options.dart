@@ -1,4 +1,3 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'enums.dart';
 
 class PeerOptions {
@@ -7,7 +6,7 @@ class PeerOptions {
   final int port;
   final String path;
   final bool secure;
-  final RTCConfiguration rtcConfig;
+  final Map<String, dynamic> rtcConfig;
   final int debug;
 
   PeerOptions({
@@ -16,12 +15,14 @@ class PeerOptions {
     this.port = 443,
     this.path = '/',
     this.secure = true,
-    RTCConfiguration? rtcConfig,
+    Map<String, dynamic>? rtcConfig,
     this.debug = 0,
-  }) : this.rtcConfig = rtcConfig ??
-            RTCConfiguration(iceServers: [
-              RTCIceServer(urls: 'stun:stun.l.google.com:19302'),
-            ]);
+  }) : rtcConfig = rtcConfig ??
+            {
+              'iceServers': [
+                {'urls': 'stun:stun.l.google.com:19302'},
+              ]
+            };
 }
 
 class ConnectionOptions {
